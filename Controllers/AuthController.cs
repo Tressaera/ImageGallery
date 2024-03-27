@@ -18,17 +18,22 @@ namespace ImageGallery.Controllers
             _signInManager = signInManager;
             _notfyService = notfyService;
         }
+        [HttpGet]
         public IActionResult Login()
         {
+            if (_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
         [HttpGet]
         public IActionResult Register()
         {
             return View();
-        }   
+        }
         [HttpPost]
-        public async Task <IActionResult> Register(RegisterVM vm)
+        public async Task<IActionResult> Register(RegisterVM vm)
         {
             if (!ModelState.IsValid) { return View(vm); }
             if (await CheckDuplicateEmail(vm.Email!))
@@ -38,23 +43,43 @@ namespace ImageGallery.Controllers
             }
             if (await CheckDuplicateUsername(vm.UserName!))
             {
-                _notfyService.Error($"Username: {vm. UserName} already exists! Please use another username");
+                _notfyService.Error($"Username: {vm.UserName} already exists! Please use another username");
                 return View(vm);
             }
             var user = new ApplicationUser
             {
                 UserName = vm.UserName,
-                Email=vm.Email,
+                Email = vm.Email,
                 FullName = vm.FullName,
             };
             await _userManager.CreateAsync(user, vm.Password!);
             _notfyService.Success("Your registration successful");
             return RedirectToAction(nameof(Login));
         }
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginVM vm)
+        {
+            if (!ModelState.IsValid) { return View(vm); }
+            var userByUserName = await _userManager.FindByNameAsync(vm.UserName!);
+            if (userByUserName == null)
+            {
+                _notfyService.Error("Username not exists");
+                return View(vm);
+            }
+
+            var verifyPassword = await _userManager.CheckPasswordAsync(userByUserName, vm.Password!);
+            if (!verifyPassword)
+            {
+                _notfyService.Error("Password does not match");
+                return View(vm);
+            }
+            await _signInManager.SignInAsync(userByUserName, vm.RememberMe);
+            return RedirectToAction(nameof(Index), "Home");
+        }
         private async Task<bool> CheckDuplicateEmail(string email)
-        { 
+        {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user != null) 
+            if (user != null)
             {
                 return true;
             }
@@ -70,5 +95,5 @@ namespace ImageGallery.Controllers
             return false;
         }
 
-        }
+    }
 }
