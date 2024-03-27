@@ -23,7 +23,7 @@ namespace ImageGallery.Controllers
         {
             if (_signInManager.IsSignedIn(User))
             {
-                return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home");
             }
             return View();
         }
@@ -76,7 +76,14 @@ namespace ImageGallery.Controllers
             await _signInManager.SignInAsync(userByUserName, vm.RememberMe);
             return RedirectToAction(nameof(Index), "Home");
         }
-        private async Task<bool> CheckDuplicateEmail(string email)
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            _notfyService.Success("Logout successful");
+            return RedirectToAction(nameof(Index), "Home");
+        }
+            private async Task<bool> CheckDuplicateEmail(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)

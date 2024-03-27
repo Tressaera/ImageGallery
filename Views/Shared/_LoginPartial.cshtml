@@ -1,0 +1,32 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@inject UserManager<ApplicationUser> _userManager;
+@inject SignInManager<ApplicationUser> _signInManager;
+<ul class="navbar-nav ms-auto">
+@if (_signInManager. IsSignedIn(User))
+{
+    <li class="nav-item dropstart">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+         Hi! @_userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name)!.FullName
+        </a>
+       <div class="dropdown-menu">
+      <a class="dropdown-item" href="#">My Profile</a>
+      <a class="dropdown-item" href="#">Change Password</a>
+      <div class="dropdown-divider"></div>
+      <form method="post" asp-controller="Auth" asp-action="Logout">
+      <button class="dropdown-item">Logout</button>
+      </form>
+      </div>
+      </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link active" asp-controller="Auth" asp-action="Login">
+            Login
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Auth" asp-action="Register">Register</a>
+    </li>
+}
+</ul>
